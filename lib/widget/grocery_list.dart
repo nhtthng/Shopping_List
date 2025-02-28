@@ -21,19 +21,29 @@ class _GroceryListState extends State<GroceryList> {
       _groceryItems.add(newItem);
     });
   }
-
+  void _removeItem(GroceryItem item){
+    setState(() {
+      _groceryItems.remove(item);
+    });
+  }
   @override
   Widget build(BuildContext context) {
 
-    Widget content = ListView.builder(itemCount: _groceryItems.length,itemBuilder: (ctx, index) => ListTile(
-        title: Text(_groceryItems[index].name),
-        leading: Container(
-          width: 24,
-          height: 24,
-          color: _groceryItems[index].category.color,
+    Widget content = ListView.builder(itemCount: _groceryItems.length,itemBuilder: (ctx, index) => Dismissible(
+      key: ValueKey(_groceryItems[index].id),
+      onDismissed: (direction) {
+        _removeItem(_groceryItems[index]);
+      },
+      child: ListTile(
+          title: Text(_groceryItems[index].name),
+          leading: Container(
+            width: 24,
+            height: 24,
+            color: _groceryItems[index].category.color,
+          ),
+          trailing: Text(_groceryItems[index].quantity.toString(),)
         ),
-        trailing: Text(_groceryItems[index].quantity.toString(),)
-      ),
+    ),
       );
       
     if(_groceryItems.isEmpty){
