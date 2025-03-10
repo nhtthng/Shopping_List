@@ -15,7 +15,7 @@ class GroceryList extends StatefulWidget {
 
 class _GroceryListState extends State<GroceryList> {
   List<GroceryItem> _groceryItems = [];
-
+  var _isLoading = true;
   @override
   void initState() {
     // TODO: implement initState
@@ -27,11 +27,11 @@ class _GroceryListState extends State<GroceryList> {
     final url = Uri.https('first-app-fb01d-default-rtdb.firebaseio.com', 'ShoppingList.json');
     final response = await http.get(url);
     // print(response.body);
-    final List<GroceryItem> _loadedItems = [];
+    final List<GroceryItem> loadedItems = [];
     final Map<String,dynamic> listData = json.decode(response.body);
     for(final item in listData.entries){
       final category = categories.entries.firstWhere((element) => element.value.name == item.value['category']).value;
-      _loadedItems.add(GroceryItem(
+      loadedItems.add(GroceryItem(
         id: item.key,
         name: item.value['name'],
         quantity: item.value['quantity'],
@@ -39,14 +39,21 @@ class _GroceryListState extends State<GroceryList> {
       ));
     }
     setState(() {
-      _groceryItems = _loadedItems;
+      _groceryItems = loadedItems;
+      _isLoading = false;
     });
   }
 
   void _addItem() async {
     // Navigator.of(context).pushNamed('/new-item');
-    await Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const NewItem()));
-    _loadItems();
+    final newItem = await Navigator.of(context).push<GroceryItem>(MaterialPageRoute(builder: (ctx) => const NewItem()));
+    // _loadItems();
+    if(newItem == null){
+      return;
+    }
+    setState(() {
+      _groceryItems.add(newItem);
+    });
   }
   void _removeItem(GroceryItem item){
     setState(() {
@@ -55,6 +62,10 @@ class _GroceryListState extends State<GroceryList> {
   }
   @override
   Widget build(BuildContext context) {
+
+    if(_isLoading){
+      return const Center(child: CircularProgressIndicator(),);
+    }
 
     Widget content = ListView.builder(itemCount: _groceryItems.length,itemBuilder: (ctx, index) => Dismissible(
       key: ValueKey(_groceryItems[index].id),
